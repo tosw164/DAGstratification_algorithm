@@ -1,8 +1,4 @@
 import math
-import time
-
-def returnCycle(input_graph):
-	return
 
 def createStratification():
     global max_stratification
@@ -26,25 +22,15 @@ def createStratification():
                     node_predicates = predecessor_array[current_index]
                     predicate_stratifications = [float('Inf') for x in range(len(node_predicates))]
 
-                    # print("notsolved",node)
-                    # print('nodpred',node_predicates)
-                    # print("predstra", predicate_stratifications)
-
                     for pred in node_predicates:
-                        # print("p",pred)
-                        # print(node_predicates)
                         index = updated_nodes_array.index([pred])
-                        # print('i',index)
                         if solved[index]: #if already solved
                             #add its stratification to compare
                             for level in stratification:
                                 level_number = stratification.index(level)
-                                # print(level_number)
-                                # print(pred,level)
                                 if [pred] in level:
                                     predicate_stratifications[node_predicates.index(pred)] = level_number
                                     break
-                    # print('ps',predicate_stratifications)
                     if float('Inf') not in predicate_stratifications:
                         new_stratification = max(predicate_stratifications)+1
 
@@ -53,16 +39,6 @@ def createStratification():
 
                         stratification[new_stratification].append(node)
                         solved[current_index] = True
-
-                    # print(node,"preds",node_predicates)
-
-        # break
-    #     print(stratification)
-    #     print(solved)
-    #     time.sleep(1)
-    #
-    # for s in stratification:
-    #     print(s)
 
     return stratification
 
@@ -94,7 +70,6 @@ lines_to_get = int(input().rstrip())
 #Process each vertex input
 for i in range(lines_to_get):
     #Get input for line and convert to int from string
-    # line_input = [int(i) for i in input().rstrip().split(" ")]
     line_input = input().rstrip().split(" ")
 
     #Populate arrays based on input
@@ -114,10 +89,6 @@ updated_nodes_array = []
 for node in nodes_array:
     updated_nodes_array.append([node])
 
-# print("nodarray",nodes_array)
-# print("updarray",updated_nodes_array)
-# print("prdarray",predecessor_array)
-# print("adjarray",adjacent_array)
 finished_stratification = createStratification()
 
 print("DAG")
@@ -128,8 +99,3 @@ for i in range(max_stratification+1):
     print(len(level))
     for node in level:
         print(" ".join(node))
-
-
-# for i in range(len(nodes_array)):
-    # print(nodes_array[i], "predicates",predecessor_array[i],"adjacents",adjacent_array[i])
-
