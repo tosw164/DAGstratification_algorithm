@@ -1,44 +1,78 @@
 import math
 
+def getNodeIndex(node, node_list):
+    if node in node_list:
+        return node_list.index(node)
+    else:
+        for node_to_check in node_list:
+            if isinstance(node_to_check, list):
+                if node in node_to_check:
+                    return node_list.index(node_to_check)
+
+def getNodeStratification(node, stratif):
+    for level in stratif:
+        if node in level:
+            return stratif.index(level)
+        for entry in level:
+            if isinstance(entry, list):
+                if node in entry:
+                    return stratif.index(level)
+
+
+
 def createStratification(all_nodes, pred_nodes):
     global max_stratification
     stratification = []
+
+    #Initialise empty stratification levels
     for i in range(len(all_nodes)):
         stratification.append([])
 
     solved = [False for i in range(len(all_nodes))]
     while False in solved:
-        for node in all_nodes:
-            current_index = all_nodes.index(node)
-            if not solved[current_index]:
-                if len(pred_nodes[current_index]) == 0: #strat = 0
-                    stratification[0].append(all_nodes[current_index])
-                    solved[current_index] = True
+        for i in range(len(all_nodes)):
+            current_node = all_nodes[i]
+            current_predecessors = pred_nodes[i]
+            # print(current_node, current_predecessors)
 
-                    if 0 > max_stratification:
-                        max_stratification = 0
+            if not solved[i]:
 
-                else: #Not stratification = 0
-                    node_predicates = pred_nodes[current_index]
-                    predicate_stratifications = [float('Inf') for x in range(len(node_predicates))]
+                #if pred empty
+                if len(current_predecessors) == 0:
+                    #set to 0 in stratification
+                    stratification[0].append(all_nodes[i])
+                    #set solved = True
+                    solved[i] = True
 
-                    for pred in node_predicates:
-                        index = all_nodes.index([pred])
-                        if solved[index]: #if already solved
-                            #add its stratification to compare
-                            for level in stratification:
-                                level_number = stratification.index(level)
-                                if [pred] in level:
-                                    predicate_stratifications[node_predicates.index(pred)] = level_number
-                                    break
-                    if float('Inf') not in predicate_stratifications:
-                        new_stratification = max(predicate_stratifications)+1
+                else: #(node has predecessors)
+                    #create list of stratifications
+                    predicate_stratifications = []
+                    #for each predecessor
+                    for pred in current_predecessors:
+                        #locate its index in all nodes list
+                        pred_index = getNodeIndex(pred, all_nodes)
+                        #if that level is solved
+                        if solved[pred_index]:
+                            #add its level to list
+                            predicate_stratifications.append(getNodeStratification(pred, stratification))
+                        else: #else
+                            #add Infinity to list
+                            predicate_stratifications.append(float('Inf'))
 
-                        if new_stratification > max_stratification:
-                            max_stratification = new_stratification
+                        #if Infinity not in list
+                        if float('Inf') not in predicate_stratifications:
+                            #find max() and +1
+                            new_stratification = max(predicate_stratifications) + 1
 
-                        stratification[new_stratification].append(node)
-                        solved[current_index] = True
+                            #update stratification max if need be
+                            if new_stratification > max_stratification:
+                                max_stratification = new_stratification
+
+                            #add to stratification
+                            stratification[new_stratification].append(current_node)
+
+                            #set solved = True
+                            solved[i] = True
 
     return stratification
 
@@ -86,7 +120,6 @@ def collapseCycle(cycle):
     # print(modified_predecessor_array)
     # print(modified_adjacency_array)
 
-
 #DFS implementation, returns False if no
 def recursiveDFS(nodes, edges, given_node):
     global original_nodes
@@ -95,6 +128,7 @@ def recursiveDFS(nodes, edges, given_node):
     global modified_adjacency_array
     global modified_nodes_array
     global modified_predecessor_array
+    global non_DAG
 
     # print("n",modified_nodes_array)
     # print("p",modified_predecessor_array)
@@ -124,13 +158,12 @@ def recursiveDFS(nodes, edges, given_node):
                 # print("cycle: ",cycle_found)
                 collapseCycle(cycle_found)
                 nodes_visited_list.remove(given_node)
+                non_DAG = True
                 return True
     # nodes_visited[given_node_index] = False
     nodes_visited_list.remove(given_node)
 
     return False
-
-
 
 def rDFS():
     running = True
@@ -147,7 +180,8 @@ def rDFS():
 
 #MAIN HERE~~~~~~~~~~~~~~~~~
 #Arrays to populate that represent graph
-max_stratification = -1
+non_DAG = False
+max_stratification = 0
 nodes_array = []
 predecessor_array = []
 adjacent_array = []
@@ -204,28 +238,39 @@ for i in adjacent_array:
 # recursiveDFS(updated_nodes_array, adjacent_array, updated_nodes_array[0][0])
 rDFS()
 
-for i in range(len(modified_nodes_array)):
-    print(modified_nodes_array[i],modified_predecessor_array[i],modified_adjacency_array[i])
+# for i in range(len(modified_nodes_array)):
+#     print(modified_nodes_array[i],modified_predecessor_array[i],modified_adjacency_array[i])
 # print(modified_nodes_array)
 # print(modified_predecessor_array)
 # print(modified_adjacency_array)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if non_DAG:
+    print("nonDAG")
+else:
+    print("DAG")
 
-#Does stratification
+# Does stratification
 finished_stratification = createStratification(modified_nodes_array, modified_predecessor_array)
 
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-print("DAG")
 print(max_stratification+1)
 
 for i in range(max_stratification+1):
-    level = finished_stratification[i]
+    current_stratification = finished_stratification[i]
+    level = []
+    for node in current_stratification:
+        if node not in level:
+            level.append(node)
     print(len(level))
     for node in level:
-        print(" ".join(node))
+        if isinstance(node, list):
+            print(" ".join(node))
+        else:
+            print(node)
 
 '''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Some algorithm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INPUTS: Vertices & Edges
 
 set index = 0
@@ -244,11 +289,9 @@ def strongConnect(vertex)
     index+=1
     push vertex onto S
     set v_onStack = TRUE
-'''
-
-'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 OLD Non recursive DFS
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def DFSonUpdatesNodesArray():
     # DFS attempt:
     visited = [False for i in range(len(updated_nodes_array))]
@@ -262,4 +305,6 @@ def DFSonUpdatesNodesArray():
             visited[current_index] = True
             print(current_node)
             for adjacent_node in adjacent_array[current_index]:
-                somestack.append([adjacent_node])'''
+                somestack.append([adjacent_node])
+
+'''
