@@ -1,43 +1,70 @@
 import math
 
+"""
+Method that returns node index within list given
+Also checks contents of sublists within given list
+to see if it contains the given node
+"""
 def getNodeIndex(node, node_list):
+    #Node not within sublist
     if node in node_list:
         return node_list.index(node)
+    #Node in sublist
     else:
+        #Check each element of list given
         for node_to_check in node_list:
+            #if n'th element is a list, check if it contains node being checked
             if isinstance(node_to_check, list):
+                #Return index of list if node found within sublist
                 if node in node_to_check:
                     return node_list.index(node_to_check)
 
+"""
+Method that returns node stratification within list given
+Also checks contents of sublists within given list
+to see if it contains the given node
+"""
 def getNodeStratification(node, stratif):
+    #Checks each level in stratification
     for level in stratif:
+        #If node in a given level return it
         if node in level:
             return stratif.index(level)
+        #Otherwise check each list within level to see if it contains node
         for entry in level:
             if isinstance(entry, list):
+                #Return index checked if found
                 if node in entry:
                     return stratif.index(level)
 
-
-
+"""
+Method that creates a stratification for a given list
+of nodes and their respective predecessor nodes
+"""
 def createStratification(all_nodes, pred_nodes):
-    global max_stratification
-    stratification = []
+    global max_stratification #variable holding max stratification level so far
+    stratification = [] #Stratification list to be returned by method
 
     #Initialise empty stratification levels
     for i in range(len(all_nodes)):
         stratification.append([])
 
+    #Sets each node to be unsolved for now
     solved = [False for i in range(len(all_nodes))]
+
+    #Continues until every node is marked solved
     while False in solved:
+        #Go through each nodes (classes already collapsed)
         for i in range(len(all_nodes)):
+
+            #Sets the current node and its predecessors being iterated through
             current_node = all_nodes[i]
             current_predecessors = pred_nodes[i]
-            # print(current_node, current_predecessors)
 
+            #If current node is not solved
             if not solved[i]:
 
-                #if pred empty
+                #if predecessor list is empty
                 if len(current_predecessors) == 0:
                     #set to 0 in stratification
                     stratification[0].append(all_nodes[i])
@@ -74,54 +101,65 @@ def createStratification(all_nodes, pred_nodes):
                             #set solved = True
                             solved[i] = True
 
+    #Return generated stratification list
     return stratification
 
+"""
+Method that collapses a cycle found using the recursive Depth First Search (DFS)
+below, and appends it to the modified arrays that will be stratified later
+"""
 def collapseCycle(cycle):
+
+    #Initialise arrays that will hold values as the values are removed from modified array
     new_node = []
     new_pred = []
     new_adj = []
-    # print(modified_nodes_array)
-    # print(modified_predecessor_array)
-    # print(modified_adjacency_array)
-    # print("c",cycle)
-    # print(modified_nodes_array)
-    # print(modified_predecessor_array)
-    # print(modified_adjacency_array)
+
+    #Goes through all cycle nodes passed in
     for node in cycle:
-        # print(node)
-        node = [node]
-        index = updated_nodes_array.index(node)
-        new_node.append(node[0])
+
+        node = [node] #Set the current node to be list containing itself
+        index = updated_nodes_array.index(node) #Gets index of the node in the origin list
+        new_node.append(node[0]) #Add current node to the new temp list
+
+        #For each predecessor of current node in cycle, add that to temp list
         for pred in predecessor_array[index]:
             new_pred.append(pred)
+
+        #For each adjacent node of current node, add that to temp list
         for adj in adjacent_array[index]:
             new_adj.append(adj)
 
+        #Index of modified list to remove values from
         index_to_remove = modified_nodes_array.index(node[0])
-        # print(index_to_remove)
+
+        #Remove current node from modified lists
         modified_adjacency_array.pop(index_to_remove)
         modified_predecessor_array.pop(index_to_remove)
         modified_nodes_array.remove(node[0])
 
+    #Remove all duplicate nodes in new collapsed adjacency & predecessor list
     for n in new_node:
         if n in new_adj:
             new_adj.remove(n)
         if n in new_pred:
             new_pred.remove(n)
-    # print("nn",new_node)
-    # print(new_pred)
-    # print("na",new_adj)
+
+    #Add new temp lists to modified lists (collapsed cycle)
     modified_nodes_array.append(new_node)
     modified_predecessor_array.append(list(set(new_pred)))
     modified_adjacency_array.append(list(set(new_adj)))
 
+"""
+Method that implements a modified recursive Depth First Search (DFS)
+algorithm to check for cycles, collapse them and populate a list data structure
+representing list of nodes (and collapsed cycles) to stratisfy
 
-    # print(modified_nodes_array)
-    # print(modified_predecessor_array)
-    # print(modified_adjacency_array)
-
-#DFS implementation, returns False if no
+Takes the modified node array, edge array, and node to process as inputs
+and recursively calls itself on adjacent nodes to current node
+"""
 def recursiveDFS(nodes, edges, given_node):
+    #Allows usage of variables created in main
     global original_nodes
     global nodes_visited
     global nodes_visited_list
@@ -130,81 +168,94 @@ def recursiveDFS(nodes, edges, given_node):
     global modified_predecessor_array
     global non_DAG
 
-    # print("n",modified_nodes_array)
-    # print("p",modified_predecessor_array)
-    # print("a",modified_adjacency_array)
-
-    # print(nodes, given_node)
+    #Index of current node in the modified list
     given_node_index = nodes.index(given_node)
 
+    #Flags current node as visited and adds it to visited history list
     nodes_visited[given_node_index] = True
     nodes_visited_list.append(given_node)
-    if given_node not in modified_nodes_array:
-        modified_nodes_array.append(given_node)
-        modified_adjacency_array.append(adjacent_array[given_node_index])
-        modified_predecessor_array.append(predecessor_array[given_node_index])
 
+    #For each node adjacent to current node
     for node in edges[given_node_index]:
-        # print("n,e,nds",node, edges[given_node_index], nodes)
-        # print("nv",nodes_visited)
-        # print(nodes,".", given_node)
+        #if node hasn't already been visited
         if not nodes_visited[original_nodes.index(node)]:
-            # print(node)
-            recursiveDFS(nodes, edges, node)
-        else: #cycle possibly detected
-            if node in nodes_visited_list: #cycle detected
-                # print(nodes_visited_list)
+            recursiveDFS(nodes, edges, node) #Call this method on that node
+
+        #If node has been visited already(cycle possibly detected)
+        else:
+            # cycle detected
+            if node in nodes_visited_list:
+
+                #Saves values of cycle detected
                 cycle_found = nodes_visited_list[nodes_visited_list.index(node):]
-                # print("cycle: ",cycle_found)
+
+                #Calls collapse cycle method, to remove cycle and add new node representing cycle
                 collapseCycle(cycle_found)
+
+                #Remove current node from history
                 nodes_visited_list.remove(given_node)
+
+                #Set flag. Therefore digraph is not DAG
                 non_DAG = True
+
+                #Return that cycle was found for this start node
                 return True
-    # nodes_visited[given_node_index] = False
+
+    #Remove current node from history list (branch already processed)
     nodes_visited_list.remove(given_node)
 
+    #Return that cycle was not found for this start node
     return False
 
-def rDFS():
+"""
+Method that calls the recursive DFS method above until no more cycles were found and processed
+"""
+def DfsCollapseAllCycles():
     running = True
     while running:
-        for node in modified_nodes_array:
-            running = recursiveDFS(modified_nodes_array, modified_adjacency_array, node)
-'''
-1  procedure DFS(G,v):
-2      label v as discovered
-3      for all edges from v to w in G.adjacentEdges(v) do
-4          if vertex w is not labeled as discovered then
-5              recursively call DFS(G,w)
-'''
+        #Setting to False here terminates while loop if 0 cycles found and processed
+        #Doing DFS on all nodes
+        running = False
 
-#MAIN HERE~~~~~~~~~~~~~~~~~
-#Arrays to populate that represent graph
-non_DAG = False
-max_stratification = 0
-nodes_array = []
-predecessor_array = []
-adjacent_array = []
+        #Calls the recursive DFS algorithm on each node in modified list
+        for node in modified_nodes_array:
+            #If True returned (Cycle/s found and processed) then run for loop again
+            if recursiveDFS(modified_nodes_array, modified_adjacency_array, node):
+                running = True
+
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MAIN
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Initialisation: Inputs and variable collection. Processing digraph too.
+"""
+
+non_DAG = False         #Flag signifying if any cycles found (DAG or not)
+max_stratification = 0  #Maximum stratification level populated when doing stratification
+nodes_array = []        #Original nodes list created when getting inputs
+predecessor_array = []  #Original predecessors of nodes obtained after getting inputs
+adjacent_array = []     #Original adjacent nodes of nodes obtained after getting inputs
 
 #Gets number of vertex
 lines_to_get = int(input().rstrip())
 
 #Process each vertex input
 for i in range(lines_to_get):
-    #Get input for line and convert to int from string
+    #Get input of edge
     line_input = input().rstrip().split(" ")
 
-    #Populate arrays based on input
+    #For each node in input
     for j in line_input:
+        #If not already seen
         if j not in nodes_array:
-            nodes_array.append(j)
-            adjacent_array.append([])
-            predecessor_array.append([])
+            nodes_array.append(j)         #Add it to nodes array
+            adjacent_array.append([])     #Initialise adjacency list for that node
+            predecessor_array.append([])  #Initialise predecessor list for that node
 
-    #Update predecessor array
+    #Update predecessor array from line input
     predecessor_array[nodes_array.index(line_input[1])].append(line_input[0])
 
-    #Update Adjacent Array
+    #Update Adjacent Array form line input
     adjacent_array[nodes_array.index(line_input[0])].append(line_input[1])
 
 #Makes the nodes array values into lists
@@ -212,99 +263,65 @@ updated_nodes_array = []
 for node in nodes_array:
     updated_nodes_array.append([node])
 
-# print(nodes_array)
-# print(predecessor_array)
-# print(adjacent_array)
-
-
-#Check non recursive DFS
-# DFSonUpdatesNodesArray()
-
-#Check recursive DFS
+#Create copy of original nodes from input
 original_nodes = []
 for i in nodes_array:
     original_nodes.append(i)
+
+#Create list of booleans representing if node has been visited or not (for DFS)
 nodes_visited = [False for i in range(len(nodes_array))]
 nodes_visited_list = []
+
+#Create editable list used to represent nodes after collapsing cycles
 modified_nodes_array = []
 for i in nodes_array:
     modified_nodes_array.append(i)
+
+#Create editable list used to represent node predecessors after cycle collapses
 modified_predecessor_array = []
 for i in predecessor_array:
     modified_predecessor_array.append(i)
+
+#Create editable list used to represent adjacent nodes after cycle collapses
 modified_adjacency_array = []
 for i in adjacent_array:
     modified_adjacency_array.append(i)
-# recursiveDFS(updated_nodes_array, adjacent_array, updated_nodes_array[0][0])
-rDFS()
 
-# for i in range(len(modified_nodes_array)):
-#     print(modified_nodes_array[i],modified_predecessor_array[i],modified_adjacency_array[i])
-# print(modified_nodes_array)
-# print(modified_predecessor_array)
-# print(modified_adjacency_array)
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Call method to iteratively perform Depth First Search to collapse all cycles in digraph
+DfsCollapseAllCycles()
+
+"""
+PRINTING OF OUTPUT
+"""
+
+#Prints depending on state of flag set above
 if non_DAG:
     print("nonDAG")
 else:
     print("DAG")
 
-# Does stratification
+# Does stratification on modified lists created from DFS
 finished_stratification = createStratification(modified_nodes_array, modified_predecessor_array)
 
+#Prints number of stratification levels generated
 print(max_stratification+1)
 
+#For each level in stratification, print nodes
 for i in range(max_stratification+1):
+
+    #Hold all nodes within stratification in list
     current_stratification = finished_stratification[i]
     level = []
     for node in current_stratification:
         if node not in level:
             level.append(node)
+
+    #Print number of nodes in level
     print(len(level))
+
+    #For each node print its value (or values if collapsed cycle)
     for node in level:
         if isinstance(node, list):
             print(" ".join(node))
         else:
             print(node)
-
-'''
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Some algorithm
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INPUTS: Vertices & Edges
-
-set index = 0
-set S = empty
-
-for each vertex in V
-    if index of vertex undefined
-        call strongConnect(vertex)
-
-
-def strongConnect(vertex)
-    #set depth index of vertex to smallest unused index
-    vertexindex = index
-    vertex_lowlink = index
-
-    index+=1
-    push vertex onto S
-    set v_onStack = TRUE
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-OLD Non recursive DFS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def DFSonUpdatesNodesArray():
-    # DFS attempt:
-    visited = [False for i in range(len(updated_nodes_array))]
-    somestack = []
-    somestack.append(updated_nodes_array[0])
-    while len(somestack) > 0:
-        current_node = somestack.pop()
-        current_index = updated_nodes_array.index(current_node)
-
-        if not visited[current_index]:
-            visited[current_index] = True
-            print(current_node)
-            for adjacent_node in adjacent_array[current_index]:
-                somestack.append([adjacent_node])
-
-'''
