@@ -168,6 +168,8 @@ def recursiveDFS(nodes, edges, given_node):
     global modified_predecessor_array
     global non_DAG
 
+    global cycle_found
+
     #Index of current node in the modified list
     given_node_index = nodes.index(given_node)
 
@@ -198,6 +200,8 @@ def recursiveDFS(nodes, edges, given_node):
                 #Set flag. Therefore digraph is not DAG
                 non_DAG = True
 
+                cycle_found = True
+
                 #Return that cycle was found for this start node
                 return True
 
@@ -211,6 +215,10 @@ def recursiveDFS(nodes, edges, given_node):
 Method that calls the recursive DFS method above until no more cycles were found and processed
 """
 def DfsCollapseAllCycles():
+    global cycle_found
+
+    cycle_found = False
+
     running = True
     while running:
         #Setting to False here terminates while loop if 0 cycles found and processed
@@ -220,8 +228,12 @@ def DfsCollapseAllCycles():
         #Calls the recursive DFS algorithm on each node in modified list
         for node in modified_nodes_array:
             #If True returned (Cycle/s found and processed) then run for loop again
-            if recursiveDFS(modified_nodes_array, modified_adjacency_array, node):
+            recursiveDFS(modified_nodes_array, modified_adjacency_array, node)
+            # if recursiveDFS(modified_nodes_array, modified_adjacency_array, node):
+            # running = True
+            if cycle_found:
                 running = True
+                cycle_found = False
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -235,6 +247,8 @@ max_stratification = 0  #Maximum stratification level populated when doing strat
 nodes_array = []        #Original nodes list created when getting inputs
 predecessor_array = []  #Original predecessors of nodes obtained after getting inputs
 adjacent_array = []     #Original adjacent nodes of nodes obtained after getting inputs
+
+cycle_found = False
 
 #Gets number of vertex
 lines_to_get = int(input().rstrip())

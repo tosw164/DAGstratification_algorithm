@@ -1,9 +1,79 @@
-a = [1,2 ,3]
-print(a)
-a.pop()
-print(a)
+def findFirstInstanceOf(n, list_to_search):
+    print(n,"in",list_to_search)
 
-b = [1, [2, 3]]
-print(b.index([2,3]))
+    if isinstance(n, list):
+        n = n[0]
 
-print([2,3] in b)
+    for value in list_to_search:
+        if isinstance(value, list):
+            if n in value:
+                # a()
+                return list_to_search.index(value)
+
+    if n in list_to_search:
+        # a()
+        return list_to_search.index(n)
+
+    # a()
+    return float('Inf')
+
+def asdf():
+    while True:
+        return
+
+
+a = 0
+b = [0, 1, 2, 3]
+print(findFirstInstanceOf(a, b))
+# print([1,2] in [1, [2,3]])
+# x = 0
+# print(x==False)
+# print(asdf())
+#
+# a = 1
+# print([a])
+# print([str(a)])
+
+
+# import collections
+# def flatten(x):
+#     if isinstance(x, collections.Iterable):
+#         return [a for i in x for a in flatten(i)]
+#     else:
+#         return [x]
+#
+# def findFirstInstanceOf(n, list_to_search):
+#     for value in list_to_search:
+#         if isinstance(value, list):
+#             if n in value:
+#                 return list_to_search.index(value)
+#
+#     if n in list_to_search:
+#         print('a')
+#         return list_to_search.index(n)
+#
+#     return False
+#
+# node = '1'
+# tolook = ['1', '2']
+# print(findFirstInstanceOf(node, tolook))
+# print(tolook.index(node))
+#
+# a = [1,2 ,3]
+# print(a)
+# a.pop()
+# print(a)
+#
+# b = [1, [2, 3]]
+# print(b.index([2,3]))
+#
+# print([2,3] in b)
+#
+# l = [[[2,3],3],[5,[[6,7],3]],9,[3,[4,[5]]]]
+# print(flatten(l))
+#
+# x = [1, 2, 3]
+# print(x)
+# for i in range(len(x)):
+#     x[i] = str(x[i])
+# print(x)
