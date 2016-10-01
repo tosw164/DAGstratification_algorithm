@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 def findFirstInstanceOf(n, list_to_search):
     print(n,"in",list_to_search)
 
@@ -23,8 +25,27 @@ def asdf():
 
 
 a = 0
-b = [0, 1, 2, 3]
+b = [0, 2, 3, 1]
 print(findFirstInstanceOf(a, b))
+
+# print([1, 3, 2].so)
+print(sorted(b, key=int))
+
+c = [[24], [31], [21], [25], [11], [41, 34, 23], [12, 22]]
+d = [[24], [3], [21], [25], [11], [41, 34, 23], [12, 22]]
+
+c = [sorted(x, key=int) for x in c]
+print(sorted(c,key=lambda x: x[0]))
+
+print(sorted([sorted(x, key=int) for x in d], key=lambda x: x[0]))
+
+e = [1, 2, 3, 4, 1, 2]
+for i in e:
+    print(i)
+
+f = [[25], [23, 34, 41], [23, 34, 41], [23, 34, 41]]
+print(sorted([sorted(x, key=int) for x in f], key=lambda x: x[0]))
+
 # print([1,2] in [1, [2,3]])
 # x = 0
 # print(x==False)
