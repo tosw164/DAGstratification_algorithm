@@ -1,9 +1,0 @@
-a = [1,2 ,3]
-print(a)
-a.pop()
-print(a)
-
-b = [1, [2, 3]]
-print(b.index([2,3]))
-
-print([2,3] in b)
